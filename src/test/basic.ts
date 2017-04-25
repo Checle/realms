@@ -1,5 +1,4 @@
 import * as test from 'tape'
-
 import * as vm from '../vm'
 
 test('basic', (t) => {
@@ -36,7 +35,7 @@ test('basic', (t) => {
     t.deepEqual(sandbox, {
       foo: 'bar',
       baz: 'bar',
-      typeofProcess: 'undefined'
+      typeofProcess: 'undefined',
     })
     t.equal(result, 'function')
 

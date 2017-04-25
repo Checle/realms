@@ -8,9 +8,12 @@ test('timeout', (t) => {
 
     const time = Date.now()
 
-    t.throws(() => {
-      vm.runInNewContext('while (true);', {}, { timeout: 100 })
-    }, null, 'should raise an exception')
+    t.throws(
+      () => {
+        vm.runInNewContext('while (true);', {}, { timeout: 100 })
+      },
+      null,
+      'should raise an exception')
 
     const duration = Date.now() - time
 
@@ -21,9 +24,12 @@ test('timeout', (t) => {
   t.test('timeout exceptions', (t) => {
     t.timeoutAfter(150)
 
-    t.throws(() => {
-      vm.runInNewContext('try { while (true); } catch (e) {  } for (var i = 0; i < 10; i++)', {}, { timeout: 100 })
-    }, null, 'should not be catchable')
+    t.throws(
+      () => {
+        vm.runInNewContext('try { while (true); } catch (e) {  } for (var i = 0; i < 10; i++)', {}, { timeout: 100 })
+      },
+      null,
+      'should not be catchable')
 
     t.end()
   })

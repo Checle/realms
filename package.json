@@ -1,7 +1,7 @@
 {
-  "name": "jsvm",
-  "version": "0.9.3",
-  "description": "Pure ECMAScript 5 implementation of the Node.js VM API",
+  "name": "@checle/web-assembly",
+  "version": "0.4.3",
+  "description": "Sandboxed ECMAScript support for the WebAssembly API",
   "main": "dist/index.js",
   "scripts": {
     "prepublish": "npm run clean && npm run build",
@@ -24,6 +24,7 @@
   "homepage": "https://github.com/daluege/jsvm",
   "devDependencies": {
     "@types/node": "^7.0.13",
+    "@types/webassembly-js-api": "0.0.0",
     "devtool": "^2.0.3",
     "gh-pages": "^0.11.0",
     "rollup": "^0.41.6",
