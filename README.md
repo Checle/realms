@@ -1,70 +1,55 @@
-# jsvm
+# web-assembly
 
-[![NPM](https://img.shields.io/npm/v/jsvm.svg?maxAge=2592000&style=flat-square)](https://www.npmjs.com/package/jsvm)
-[![Dependencies](https://img.shields.io/david/checle/jsvm.svg?maxAge=2592000&style=flat-square)](https://david-dm.org/checle/jsvm)
-[![Build status](https://img.shields.io/travis/checle/jsvm/master.svg?style=flat-square)](https://travis-ci.org/checle/jsvm)
+[![NPM](https://img.shields.io/npm/v/@checle/web-assembly.svg?maxAge=2592000&style=flat-square)](https://www.npmjs.com/package/@checle/web-assembly)
+[![Dependencies](https://img.shields.io/david/checle/web-assembly.svg?maxAge=2592000&style=flat-square)](https://david-dm.org/checle/web-assembly)
+[![Build status](https://img.shields.io/travis/checle/web-assembly/master.svg?style=flat-square)](https://travis-ci.org/checle/web-assembly)
 [![Coding style](https://img.shields.io/badge/code%20style-standard-blue.svg?style=flat-square)](http://standardjs.com/)
 
-`jsvm` is a secure and fully compatible implementation of the [Node.js VM API](https://nodejs.org/api/vm.html) in pure ECMAScript 5. It has a footprint of 7KB, does not depend on browser technologies such as the DOM. While `jsvm` can be used excellently as a [webpack shim](https://webpack.github.io/docs/configuration.html#resolve-alias) for `vm`, you just could use it instead of `vm` in Node.js, too.
+`web-assembly` is an implementation of the [WebAssembly API](https://nodejs.org/api/vm.html) for secure execution of ECMAScript. It has a footprint of 5KB and does not depend on the DOM.
 
-`jsvm` has been designed with efficiency and security in mind:
-
-* Code is transpiled only on the basis of native `RegExp` tokenization
-  and no AST is created, increasing speed by a huge factor. The cost
-  of initialization is minimal, no `iframe` or similar is created at runtime.
-* Security measures are designed to be immune to
-  extensions of the ECMAScript grammar (non-standard
-  extensions, future extensions). The package
-  works with standardized ES5 features only, making results
-  predictable and security best assessable.
+`web-assembly` has been designed with efficiency and security in mind. Code is sandboxed purely by means of the runtime API. No lexing or parsing is carried out. Security measures are designed to be immune to extensions of the ECMAScript language. The package works with standardized ECMAScript features only, making results predictable and security assessable.
 
 ## Installation
 
 Install this package using NPM:
 
-    npm install jsvm
+    npm install @checle/web-assembly --save-dev
 
 ## Usage
 
 ```javascript
-var vm = require('jsvm');
-var sandbox = { console };
+import WebAssembly from '@checle/web-assembly';
 
-vm.runInNewContext('console.log("Hello world")', sandbox);
+let sandbox = {console};
+
+WebAssembly.instantiate('console.log("Hello world")', sandbox);
 ```
 
-See the Node.js `vm` [documentation](https://nodejs.org/api/vm.html).
+See the [WebAssembly API documentation](http://webassembly.org/docs/js/) for further details.
 
 ## Method
 
-`jsvm` executes scripts subsequently in the same global scope. No
-`iframe` or Web Worker is instantiated at runtime and execution is
-carried out solely by means of `eval` execution of `RegExp`-transpiled
-code.
+`web-assembly` executes scripts synchronously in the global scope. No
+overhead such as instantiating an `iframe` or Web Worker is involved.
+Code is not transpiled.
 
-To achieve this, from the perspective of an executed script, built-in
-[global objects](https://es5.github.io/#x15.1) (not the global object itself) are
-frozen. Any modifications on properties or sub-properties of built-in
+In order to sandbox code from the environment, [built-in
+objects](https://es5.github.io/#x15.1) are
+frozen and the global object is sealed.
+Any modifications on properties or sub-properties of built-in
 objects (such as `Object.prototype.toString`)
 will be discarded (see the behavior of [`Object.freeze()`](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze)).
 
-`jsvm` will not freeze any objects of the host script but create a
-separate global scope for execution of virtualized scripts as long as
-the executing environment makes it technically viable to create such a
-separate global scope. This is the case in Node.js and in a browser.
+Objects are thoroughly isolated from the host environment.
+Variables passed as `importObject` are completely represented in
+the sandbox: methods are callable and properties
+are recursively accessible. However, changes made to these
+properties are not reflected in the host environment.
 
-## Comparison
+## Caveats
 
-`jsvm` differs from `vm` in the following points:
-
-### Limitations
-
-* All scripts run in _strict mode_ (or a superset, depending on browser support).
-* Built-in objects (`Object`, `Array`, `Date` etc.) and their prototypes are immutable.
-
-### Intentional differences
-
-* The `timeout` option limits the execution time of the script itself but also of functions defined in the script that are called once the main script has terminated, such as events, timeouts etc.
+* Scripts run in _strict mode_ (or a superset, depending on browser support).
+* Built-in objects (`Object`, `Array`, `Date` etc.), their prototypes and the global object are immutable.
 
 ## License
 
