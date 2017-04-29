@@ -67,10 +67,10 @@ export class Module implements WebAssembly.Module {
     let code = toString(bytes)
 
     try {
-      let result = evaluate("({evaluator:function(){eval(Array.prototype.shift.call(arguments))},routine:function(){" + code + "}})")
+      let [evaluator, routine] = evaluate('[function(){eval(arguments[0])},function(){try{' + code + '}finally{return function(){eval(arguments[0])}}}}]')
 
-      this.evaluator = result.evaluator
-      this.routine = result.routine
+      this.evaluator = evaluator
+      this.routine = routine
     } catch (error) {
       throw new CompileError(error as string)
     }
@@ -88,12 +88,16 @@ export class Instance implements WebAssembly.Instance {
 
     try {
       let symbols = imports && Object.keys(imports).filter(name => /^\w+$/.test(name)) || []
-      let init = symbols.map(name => 'try{' + name + '=arguments[0].' + name + '}catch(e){}')
+      let enter = symbols.map(name => 'try{' + name + '=this.' + name + '}catch(e){}')
         + 'Array.prototype.shift.call(arguments)'
-      let exports = {}
+      let exit = symbols.map(name => 'try{if(' + name + '!==undefined)this.' + name + '=' + name + '}catch(e){}')
+      let exports = Object.assign({}, imports)
 
-      module.evaluator(init, imports)
-      module.routine.call(exports, imports)
+      module.evaluator.call(exports, enter)
+
+      let evaluator = module.routine.call(exports, imports)
+
+      evaluator.call(exports, exit)
 
       for (let name in exports) {
         Object.defineProperty(exports, name, {value: exports[name]})
