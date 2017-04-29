@@ -1,4 +1,4 @@
-import {global, freeze, preventExtensions, clone} from './object'
+import {global, freeze, clone} from './object'
 
 const BuiltIns = new Set(['Array', 'ArrayBuffer', 'Atomics', 'Boolean', 'DataView', 'Date', 'Error', 'EvalError',
   'Float32Array', 'Float64Array', 'Function', 'Generator', 'GeneratorFunction', 'Infinity', 'Int16Array', 'Int32Array',
@@ -61,9 +61,6 @@ export default function evaluate (code: string, thisArg?, ...args) {
   for (let name of BuiltIns) {
     freeze(global[name])
   }
-
-  // Seal the global scope
-  preventExtensions(global)
 
   // Collect names
   let names = []
