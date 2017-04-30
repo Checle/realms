@@ -1,5 +1,14 @@
 export const global = (new Function('return this'))()
 
+export function isNative(fn) {
+  try {
+    new Function('(' + fn + ')')
+  } catch (e) { // Syntax error occurred
+    return true
+  }
+  return false
+}
+
 export function preventExtensions (object: any): void {
   do {
     Object.preventExtensions(object)
@@ -62,8 +71,6 @@ export function freeze (object: any): void {
   }
 }
 
-// TODO clone lazily (may lead to inconsistent states though)
-
 export function clone (object): any {
   return shim(object, new WeakMap(), new WeakMap())
 
@@ -75,6 +82,7 @@ export function clone (object): any {
     if (target != null) return target
 
     let prototype = Object.getPrototypeOf(object)
+    let constructor = object.constructor
 
     if (typeof object === 'function') {
       target = function (...args) {
@@ -82,6 +90,11 @@ export function clone (object): any {
 
         return shim(result, origins, targets)
       }
+    } else if (Array.isArray(object)) {
+      target = Array.prototype.slice.call(object)
+    } else if (isNative(constructor) && prototype === constructor.prototype) {
+      if (typeof constructor.from === 'function') target = constructor.from(object)
+      else target = new constructor(object)
     } else {
       target = Object.create(shim(prototype, origins, targets))
     }
