@@ -57,6 +57,10 @@ export function getIdentifiers (code: string): string[] {
 }
 
 export default function evaluate (code: string, thisArg?, ...args) {
+  if (new Function('return eval("function(){return this}()")')() !== null) {
+    throw new EvalError('Strict mode is not supported')
+  }
+
   // Deep-freeze all builtin objects
   for (let name of BuiltIns) {
     freeze(global[name])

@@ -1,4 +1,5 @@
 import evaluate from './eval'
+import {isIdentifier} from './eval'
 
 export const NativeError = 'NativeError' in global ? global['NativeError'] as ErrorConstructor : Error
 
@@ -87,9 +88,8 @@ export class Instance implements WebAssembly.Instance {
     }
 
     try {
-      let symbols = imports && Object.keys(imports).filter(name => /^\w+$/.test(name)) || []
+      let symbols = imports ? Object.keys(imports).filter(name => isIdentifier(name)) : []
       let enter = symbols.map(name => 'try{' + name + '=this.' + name + '}catch(e){}')
-        + 'Array.prototype.shift.call(arguments)'
       let exit = symbols.map(name => 'try{if(' + name + '!==undefined)this.' + name + '=' + name + '}catch(e){}')
       let exports = Object.assign({}, imports)
 
