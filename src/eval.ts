@@ -1,59 +1,27 @@
-import {global, freeze, clone} from './object'
+import {global, freeze, clone, preventExtensions} from './object'
 
-const BuiltIns = new Set(['Array', 'ArrayBuffer', 'Atomics', 'Boolean', 'DataView', 'Date', 'Error', 'EvalError',
+const BuiltIns = ['Array', 'ArrayBuffer', 'Atomics', 'Boolean', 'DataView', 'Date', 'Error', 'EvalError',
   'Float32Array', 'Float64Array', 'Function', 'Generator', 'GeneratorFunction', 'Infinity', 'Int16Array', 'Int32Array',
   'Int8Array', 'InternalError', 'Iterator', 'JSON', 'Map', 'Math', 'NaN', 'Number', 'Object', 'ParallelArray',
   'Promise', 'Proxy', 'RangeError', 'ReferenceError', 'Reflect', 'RegExp', 'Set', 'SharedArrayBuffer', 'StopIteration',
   'String', 'Symbol', 'SyntaxError', 'TypeError', 'URIError', 'Uint16Array', 'Uint32Array', 'Uint8Array',
   'Uint8ClampedArray', 'WeakMap', 'WeakSet', 'decodeURI', 'decodeURIComponent', 'encodeURI', 'encodeURIComponent',
-  'escape', 'eval', 'arguments', 'isFinite', 'isNaN', 'parseFloat', 'parseInt', 'undefined', 'unescape'])
-
-// TODO: secure eval
-
-export function isBuiltIn (name: string): boolean {
-  return BuiltIns.has(name)
-}
+  'escape', 'eval', 'arguments', 'isFinite', 'isNaN', 'parseFloat', 'parseInt', 'undefined', 'unescape']
 
 export function isIdentifier (name: string): boolean {
+  // Exclude operators, control characters and ASCII white-space
+  if (/(?![$\w])[\0-\x7F]/.test(name)) {
+    return false
+  }
+
   // Test if identifier is a valid variable name
   try {
-    // Strip operators, control characters and ASCII white-space
-    eval('var ' + name.replace(/(?![$\w])[\0-\x7F]/g, ''))
+    eval('var ' + name)
   } catch (e) {
     return  false
   }
+
   return true
-}
-
-export function getIdentifiers (code: string): string[] {
-  let pattern = /(?:[$\w]|[^\0-\x7F])+/g
-  let identifiers = {}
-  let match: any[]
-
-  while ((match = pattern.exec(code))) {
-    let sequence = match[0]
-    let end = 0
-
-    if (!/[^$\w]/.test(sequence)) {
-      identifiers[sequence] = true
-      continue
-    }
-
-    for (let offset = 0; offset < sequence.length; offset = end) {
-      try {
-        eval('var ' + sequence[offset])
-
-        for (end = offset + 1; end < sequence.length; end++) {
-          try { eval('var _' + sequence[end]) }
-          catch (e) { break }
-        }
-
-        identifiers[sequence.substring(offset, end)] = true
-      } catch (e) { end++ }
-    }
-  }
-
-  return Object.getOwnPropertyNames(identifiers).filter(name => { try { new Function('var ' + name) } catch (e) { return false } return true })
 }
 
 export default function evaluate (code: string, thisArg?, ...args) {
@@ -66,6 +34,9 @@ export default function evaluate (code: string, thisArg?, ...args) {
     freeze(global[name])
   }
 
+  // Seal the global scope
+  preventExtensions(global)
+
   // Collect names
   let names = []
 
@@ -76,13 +47,9 @@ export default function evaluate (code: string, thisArg?, ...args) {
   // Filter out invalid identifier patterns
   names = names.filter(isIdentifier)
 
-  // Collect identifiers
-  names = names.concat(getIdentifiers(code))
-
-  // Filter out built-ins
-  names = names.filter(name => !isBuiltIn(name))
-
-  let evaluate = new Function("'use strict';" + (names.length ? 'var ' + names.join(',') + ';' : '') + 'return eval(Array.prototype.shift.call(arguments))')
+  // Separate eval from the local scope, bind built-in identifiers
+  let functionString = 'function Function(){return eval("(function("+Array.prototype.slice.call(arguments,0,-1).join(",")+"){"+arguments[arguments.length-1]+"})")}'
+  let evaluate = new Function('return (function(' + BuiltIns.join(',') + '){' + (names.length ? 'var ' + names.join(',') + ';' : '') + 'return function(){' + functionString + 'return eval(Array.prototype.shift.call(arguments))}})(' + BuiltIns.join(',') + ')')
 
   return clone(evaluate.call(thisArg, code, ...args))
 }

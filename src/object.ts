@@ -1,11 +1,18 @@
 export const global = (new Function('return this'))()
 
+let nonNativeObjects = new WeakSet<any>()
+
 export function isNative(fn) {
-  try {
-    new Function('(' + fn + ')')
-  } catch (e) { // Syntax error occurred
-    return true
+  if (!nonNativeObjects.has(fn)) {
+    try {
+      new Function('(' + fn + ')')
+    } catch (e) { // Syntax error occurred
+      return true
+    }
+
+    nonNativeObjects.add(fn)
   }
+
   return false
 }
 
@@ -75,7 +82,9 @@ export function clone (object): any {
   return shim(object, new WeakMap(), new WeakMap())
 
   function shim (object, origins, targets) {
-    if (!(object instanceof Object)) return object
+    if (object == null || typeof object !== 'object' && typeof object !== 'function') {
+      return object
+    }
 
     let target = targets.get(object)
 
