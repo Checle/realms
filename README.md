@@ -10,12 +10,12 @@
 
 Install this package using NPM:
 
-    npm install @checle/web-assembly --save-dev
+    npm install @record/web-assembly --save-dev
 
 ## Usage
 
 ```javascript
-import WebAssembly from '@checle/web-assembly';
+import WebAssembly from '@record/web-assembly';
 
 let sandbox = {console};
 
@@ -46,7 +46,7 @@ properties are not reflected in the host environment.
 ## Caveats
 
 * Scripts run in _strict mode_ (or a superset, depending on browser support).
-* Built-in objects (`Object`, `Array`, `Date` etc.), their prototypes are immutable.
+* Built-in objects (`Object`, `Array`, `Date` etc.) and their prototypes are immutable.
 
 ## License
 

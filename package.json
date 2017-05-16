@@ -1,6 +1,6 @@
 {
-  "name": "@checle/web-assembly",
-  "version": "0.7.0",
+  "name": "@record/web-assembly",
+  "version": "0.7.1",
   "description": "Sandboxed ECMAScript support for the WebAssembly API",
   "main": "dist/index.js",
   "scripts": {
@@ -14,14 +14,14 @@
   "typings": "dist/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/daluege/jsvm.git"
+    "url": "git+https://github.com/checle/web-assembly.git"
   },
   "author": "Filip Dalüge <daluege@gmail.com>",
   "license": "UNLICENSED",
   "bugs": {
-    "url": "https://github.com/daluege/jsvm/issues"
+    "url": "https://github.com/checle/web-assembly/issues"
   },
-  "homepage": "https://github.com/daluege/jsvm",
+  "homepage": "https://github.com/checle/web-assembly",
   "devDependencies": {
     "@types/node": "^7.0.13",
     "@types/webassembly-js-api": "0.0.0",
