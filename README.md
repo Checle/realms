@@ -1,9 +1,6 @@
 # web-assembly
 
-[![NPM](https://img.shields.io/npm/v/@checle/web-assembly.svg?maxAge=2592000&style=flat-square)](https://www.npmjs.com/package/@checle/web-assembly)
-[![Dependencies](https://img.shields.io/david/checle/web-assembly.svg?maxAge=2592000&style=flat-square)](https://david-dm.org/checle/web-assembly)
 [![Build status](https://img.shields.io/travis/checle/web-assembly/master.svg?style=flat-square)](https://travis-ci.org/checle/web-assembly)
-[![Coding style](https://img.shields.io/badge/code%20style-standard-blue.svg?style=flat-square)](http://standardjs.com/)
 
 `web-assembly` is an implementation of the [WebAssembly API](http://webassembly.org/docs/js/) for secure execution of ECMAScript. It has a footprint of 5KB and does not depend on the DOM.
 
