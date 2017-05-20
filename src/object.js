@@ -1,6 +1,6 @@
 export const global = (new Function('return this'))()
 
-let nonNativeObjects = new WeakSet<any>()
+let nonNativeObjects = new WeakSet()
 
 export function isNative(fn) {
   if (!nonNativeObjects.has(fn)) {
@@ -16,21 +16,22 @@ export function isNative(fn) {
   return false
 }
 
-export function preventExtensions (object: any): void {
+export function preventExtensions (object) {
   do {
     Object.preventExtensions(object)
     object = Object.getPrototypeOf(object)
   } while (object != null)
 }
 
-let frozenObjects = new WeakSet<any>()
+let frozenObjects = new WeakSet()
 
-export function freeze (object: any): void {
+export function freeze (object) {
   if (object === global) new TypeError('Cannot freeze the global scope')
-  if (!(object instanceof Object) || frozenObjects.has(object)) return
+  if (frozenObjects.has(object) || object === null || typeof object !== 'function' && typeof object !== 'object') return
 
   frozenObjects.add(object)
 
+  let prototype = Object.getPrototypeOf(object)
   let properties = Object.getOwnPropertyNames(object)
 
   // A frozen property in the prototype chain will prevent a property of the same name on an inheriting object from being set (e.g., `toString`) so circumvent this
@@ -39,16 +40,18 @@ export function freeze (object: any): void {
 
     if (descriptor.writable && descriptor.configurable) {
       Object.defineProperty(object, name, {
+        enumerable: descriptor.enumerable,
+
         get () {
           return descriptor.value
         },
+
         set (value) {
           if (this === object) return object
 
           // Defines a property on the inheritor, preventing the frozen parent from being set
           Object.defineProperty(this, name, {value, writable: true, configurable: true, enumerable: descriptor.enumerable})
         },
-        enumerable: descriptor.enumerable,
       })
     }
   }
@@ -58,13 +61,13 @@ export function freeze (object: any): void {
     Object.freeze(object)
 
     // Drop out as soon as any non-standard behavior is observed
-    if (!Object.isFrozen(object)) {
+    if (!Object.isFrozen(object) && prototype !== null) {
       throw new ReferenceError('Unexpected built-in')
     }
   }
 
   // Recurse to parent
-  freeze(Object.getPrototypeOf(object))
+  freeze(prototype)
 
   // Freeze properties
   for (let name of properties) {
@@ -78,7 +81,7 @@ export function freeze (object: any): void {
   }
 }
 
-export function clone (object): any {
+export function clone (object) {
   return shim(object, new WeakMap(), new WeakMap())
 
   function shim (object, origins, targets) {
