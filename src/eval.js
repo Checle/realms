@@ -1,4 +1,4 @@
-import {global, freeze, clone, preventExtensions} from './object'
+import {global, freeze, clone, preventExtensions} from './object.js'
 
 const BuiltIns = ['Array', 'ArrayBuffer', 'Atomics', 'Boolean', 'DataView', 'Date', 'Error', 'EvalError',
   'Float32Array', 'Float64Array', 'Function', 'Generator', 'GeneratorFunction', 'Infinity', 'Int16Array', 'Int32Array',
@@ -8,7 +8,7 @@ const BuiltIns = ['Array', 'ArrayBuffer', 'Atomics', 'Boolean', 'DataView', 'Dat
   'Uint8ClampedArray', 'WeakMap', 'WeakSet', 'decodeURI', 'decodeURIComponent', 'encodeURI', 'encodeURIComponent',
   'escape', 'eval', 'arguments', 'isFinite', 'isNaN', 'parseFloat', 'parseInt', 'undefined', 'unescape']
 
-export function isIdentifier (name: string): boolean {
+export function isIdentifier (name) {
   // Exclude operators, control characters and ASCII white-space
   if (/(?![$\w])[\0-\x7F]/.test(name)) {
     return false
@@ -24,7 +24,7 @@ export function isIdentifier (name: string): boolean {
   return true
 }
 
-export default function evaluate (code: string, thisArg?, ...args) {
+export default function evaluate (code, thisArg, ...args) {
   if (new Function('return eval("function(){return this}()")')() !== null) {
     throw new EvalError('Strict mode is not supported')
   }

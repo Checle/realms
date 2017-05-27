@@ -1,34 +1,35 @@
 {
-  "name": "@checle/realms",
-  "version": "0.7.2",
+  "name": "realms-polyfill",
+  "version": "0.7.3",
   "description": "Realms polyfill",
   "main": "dist/index.js",
+  "browser": "dist/browser.js",
   "scripts": {
     "prepublish": "npm run build",
-    "postpublish": "npm run deploy",
     "test": "tap dist/**/test/*.js dist/**/test.js | tap-spec",
     "lint": "eslint src/**/*.js",
     "build": "babel src -D -d dist",
     "watch": "babel src -Dw -d dist",
-    "bundle": "rollup -c .rolluprc.js",
+    "bundle": "rollup -c",
     "dist": "npm run build && npm run bundle"
   },
   "typings": "dist/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/checle/web-assembly.git"
+    "url": "git+https://github.com/checle/realms.git"
   },
   "author": "Filip Dalüge <daluege@gmail.com>",
   "license": "UNLICENSED",
   "bugs": {
-    "url": "https://github.com/checle/web-assembly/issues"
+    "url": "https://github.com/checle/realms/issues"
   },
-  "homepage": "https://github.com/checle/web-assembly",
+  "homepage": "https://github.com/checle/realms",
   "devDependencies": {
-    "babel-preset-node6": "^11.0.0",
     "babel-cli": "^6.24.1",
     "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-preset-node6": "^11.0.0",
     "rollup": "^0.41.6",
+    "rollup-plugin-node-resolve": "^3.0.0",
     "rollup-watch": "^3.2.2"
   },
   "dependencies": {}

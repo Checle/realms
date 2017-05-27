@@ -26,15 +26,23 @@ export function preventExtensions (object) {
 let frozenObjects = new WeakSet()
 
 export function freeze (object) {
+  // Prevent recursion to the host global object for security reasons
   if (object === global) new TypeError('Cannot freeze the global scope')
-  if (frozenObjects.has(object) || object === null || typeof object !== 'function' && typeof object !== 'object') return
+
+  // Omit primitive values
+  if (object == null || typeof object !== 'function' && typeof object !== 'object') {
+    return object
+  }
+
+  // Freeze only once
+  if (frozenObjects.has(object)) return object
 
   frozenObjects.add(object)
 
   let prototype = Object.getPrototypeOf(object)
   let properties = Object.getOwnPropertyNames(object)
 
-  // A frozen property in the prototype chain will prevent a property of the same name on an inheriting object from being set (e.g., `toString`) so circumvent this
+  // A frozen property in the prototype chain will prevent a property of the same name on an inheriting object from being set (e.g., `toString`), so circumvent this
   for (let name of properties) {
     let descriptor = Object.getOwnPropertyDescriptor(object, name)
 
@@ -79,55 +87,63 @@ export function freeze (object) {
 
     freeze(value)
   }
+
+  return object
 }
 
 export function clone (object) {
-  return shim(object, new WeakMap(), new WeakMap())
-
   function shim (object, origins, targets) {
-    if (object == null || typeof object !== 'object' && typeof object !== 'function') {
-      return object
-    }
-
-    let target = targets.get(object)
-
-    if (target != null) return target
-
-    let prototype = Object.getPrototypeOf(object)
-    let constructor = object.constructor
-
-    if (typeof object === 'function') {
-      target = function (...args) {
-        let result = object.apply(this, args.map(arg => shim(arg, targets, origins)))
-
-        return shim(result, origins, targets)
-      }
-    } else if (Array.isArray(object)) {
-      target = Array.prototype.slice.call(object)
-    } else if (isNative(constructor) && prototype === constructor.prototype) {
-      if (typeof constructor.from === 'function') target = constructor.from(object)
-      else target = new constructor(object)
-    } else {
-      target = Object.create(shim(prototype, origins, targets))
-    }
-
-    origins.set(target, object)
-    targets.set(object, target)
-
-    for (let name of Object.getOwnPropertyNames(object)) {
-      let descriptor = Object.getOwnPropertyDescriptor(object, name)
-
-      for (let key in descriptor) {
-        descriptor[key] = shim(descriptor[key], origins, targets)
+    function clone (object) {
+      if (object == null || typeof object !== 'object' && typeof object !== 'function') {
+        return object
       }
 
-      Object.defineProperty(target, name, descriptor)
+      let target = targets.get(object)
+
+      if (target != null) return target
+
+      let prototype = Object.getPrototypeOf(object)
+      let constructor = object.constructor
+
+      if (typeof object === 'function') {
+        target = function (...args) {
+          args = args.map(arg => shim(arg, targets, origins))
+
+          let result = new.target ? new object(...args) : object.apply(this, args)
+
+          return clone(result)
+        }
+      } else if (Array.isArray(object)) {
+        target = Array.prototype.slice.call(object)
+      } else if (isNative(constructor) && prototype === constructor.prototype) {
+        if (typeof constructor.from === 'function') target = constructor.from(object)
+        else target = new constructor(object)
+      } else {
+        target = Object.create(clone(prototype))
+      }
+
+      origins.set(target, object)
+      targets.set(object, target)
+
+      for (let name of Object.getOwnPropertyNames(object)) {
+        let descriptor = Object.getOwnPropertyDescriptor(object, name)
+
+        for (let key in descriptor) {
+          descriptor[key] = clone(descriptor[key])
+        }
+
+        Object.defineProperty(target, name, descriptor)
+      }
+
+      if (!Object.isExtensible(object)) Object.preventExtensions(target)
+      if (Object.isFrozen(object)) Object.freeze(target)
+      if (Object.isSealed(object)) Object.seal(target)
+
+      return target
     }
 
-    if (!Object.isExtensible(object)) Object.preventExtensions(target)
-    if (Object.isFrozen(object)) Object.freeze(target)
-    if (Object.isSealed(object)) Object.seal(target)
-
-    return target
+    return clone(object)
   }
+
+  return shim(object, new WeakMap(), new WeakMap())
 }
