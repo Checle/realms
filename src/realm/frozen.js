@@ -42,7 +42,9 @@ export class FrozenRealm extends Realm {
     let global = Object.create(this[GLOBAL])
     let context = this[CONTEXT]
 
-    Object.assign(global, endowments)
+    for (let key of Object.keys(endowments)) {
+      Object.defineProperty(global, key, Object.getOwnPropertyDescriptor(endowments, key))
+    }
 
     do {
       names = names.concat(Object.getOwnPropertyNames(current))

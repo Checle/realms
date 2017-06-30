@@ -25,6 +25,8 @@ export class Realm {
 
     Object.setPrototypeOf(child[GLOBAL], this[GLOBAL])
     Object.assign(child[GLOBAL], endowments)
+
+    return child
   }
 }
 
